@@ -1,0 +1,30 @@
+MimeProvider
+------------
+
+Small framework component for pyramid to serialize/deserializer resources
+depending on mimetypes.
+
+This project is suitable for data driven REST api's, it adapts to the standard
+negotation in HTTPs, or specifically the Accept and Content-Type headers to
+decide the format and type of incoming and outgoing resources.
+
+Example
+-------
+
+see examples/small_application.py
+
+If you boot up the example application, you will see the magic in action.
+
+    curl http://localhost:8080/missing -H "Accept: */*" -v
+
+or surf to the same address, notice that it serves a minimal html page
+describing the resource.
+
+    curl http://localhost:8080/missing -H "Accept: */*" -H "Content-Type: application/somedata+json" --data '{"string": "Oh No", "integer": 42, "somelist": [1, 2, 3, 4]}'
+
+The sole responsibility for this project is to assert that types are negotiated correctly, and are clearly distinguished from formats.
+In order to build a fully functional API there are still a few steps necessary.
+
+* Schema validation
+* Database access (if applicable)
+* Data binding (from front-end data types to backend)
