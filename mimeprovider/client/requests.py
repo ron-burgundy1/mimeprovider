@@ -8,6 +8,8 @@ import werkzeug.http
 
 from mimeprovider.exceptions import MimeValidationError
 
+from mimeprovider.client import Client
+
 DEFAULT_HEADERS = {
     "Accept": "*/*"
 }
@@ -17,7 +19,7 @@ class ClientException(Exception):
     pass
 
 
-class Client(object):
+class RequestsClient(Client):
     def __init__(self, mimetypes, url, **kw):
         self.mimetypes = mimetypes
 
@@ -77,6 +79,3 @@ class Client(object):
                 "Failed to parse content of type: {0}".format(mimetype))
 
         return response, obj
-
-    def get(self, uri, **kw):
-        return self.request('GET', uri, **kw)

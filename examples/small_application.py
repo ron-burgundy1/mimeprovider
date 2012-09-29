@@ -79,6 +79,8 @@ document_types = [
 ]
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
     config = Configurator()
     config.add_route('example', '/example/{name}')
 
