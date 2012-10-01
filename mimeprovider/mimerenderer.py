@@ -4,13 +4,6 @@ import logging
 from mimeprovider.exceptions import MimeBadRequest
 from mimeprovider.exceptions import MimeInternalServerError
 
-from mimeprovider.validators import get_default_validator
-
-VALIDATORS = [
-    "mimeprovider.validators.jsonschema"
-]
-
-
 log = logging.getLogger(__name__)
 
 
@@ -19,19 +12,6 @@ class MimeRenderer(object):
         self.mimetypes = mimetypes
         self.error_document_type = error_document_type
         self.error_handler = error_handler
-        self.validator = kw.get("validator")
-
-        if self.validator is None:
-            self.validator = get_default_validator()
-
-        if self.validator is None:
-            raise ValueError("No validator available")
-
-    def validate(self, cls, data):
-        if not hasattr(cls, "schema"):
-            return
-
-        self.validator.validate(cls.schema, data)
 
     def _render(self, obj, request):
         mime = request.accept.best_match(self.mimetypes)
@@ -41,7 +21,7 @@ class MimeRenderer(object):
                 "Unable to provide response for Accept: " +
                 str(request.accept))
 
-        document_type, _ = self.mimetypes[mime]
+        document_type, _, validator = self.mimetypes[mime]
 
         if not hasattr(obj, "to_data"):
             log.error("Object missing 'to_data' attribute: " + repr(obj))
@@ -49,7 +29,7 @@ class MimeRenderer(object):
                 "Cannot render requested resource")
 
         request.response.content_type = document_type.get_mimetype(obj)
-        return document_type.render(self, obj)
+        return document_type.render(validator, obj)
 
     def _render_error(self, exc, request):
         error = self.error_handler(exc, request)

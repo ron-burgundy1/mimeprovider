@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from mimeprovider.documenttype import DocumentType
 
 import json
@@ -11,14 +13,16 @@ class JsonDocumentType(DocumentType):
     custom_mime = True
     mime = "application/{o.object_type}+json"
 
-    def parse(self, context, cls, string):
+    def parse(self, validator, cls, string):
         data = json.loads(string)
-        context.validate(cls, data)
-        return cls.from_data(context, data)
+        if validator:
+            validator.validate(cls, data)
+        return cls.from_data(data)
 
-    def render(self, context, obj):
-        data = obj.to_data(context)
-        context.validate(obj.__class__, data)
+    def render(self, validator, obj):
+        data = obj.to_data()
+        if validator:
+            validator.validate(obj.__class__, data)
         return json.dumps(data)
 
 

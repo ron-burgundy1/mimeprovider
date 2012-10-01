@@ -6,40 +6,54 @@ from pyramid.httpexceptions import HTTPError
 from mimeprovider import MimeProvider
 
 
-class SomeData(object):
-    object_type = "somedata"
-
+class BaseObject(object):
     def __init__(self, **kw):
-        self.string = kw.pop("string", None)
-        self.integer = kw.pop("integer", None)
-        self.somelist = kw.pop("somelist", None)
+        for key, value in kw.items():
+            setattr(self, key, value)
+        self.__keys__ = kw.keys()
 
-    def to_data(self, request):
-        return {
-            "string": self.string,
-            "integer": self.integer,
-            "somelist": self.somelist
-        }
+    def to_data(self):
+        return dict((k, getattr(self, k, None)) for k in self.__keys__)
 
     @classmethod
-    def from_data(cls, data, request):
-        instance = cls()
-        instance.string = data["string"]
-        instance.integer = data["integer"]
-        instance.somelist = data["somelist"]
-        return instance
+    def from_data(cls, BaseObject):
+        return cls(**BaseObject)
 
 
-class Error(object):
-    object_type = "error"
-
-    def __init__(self, message):
-        self.message = message
-
-    def to_data(self, request):
-        return {
-            "message": self.message
+class SomeData(BaseObject):
+    schema = {
+        "type": "object",
+        "properties": {
+            "string": {
+                "type": "string",
+                "required": True,
+            },
+            "integer": {
+                "type": "number",
+                "required": True,
+            },
+            "somelist": {
+                "type": "array",
+                "required": True,
+            },
         }
+    }
+
+    object_type = "somedata"
+
+
+class Error(BaseObject):
+    schema = {
+        "type": "object",
+        "properties": {
+            "message": {
+                "type": "string",
+                "required": True,
+            }
+        }
+    }
+
+    object_type = "error"
 
 
 def example_endpoint(request):
@@ -55,18 +69,18 @@ def example_endpoint(request):
 
 def http_errors(exc, request):
     request.response.status_code = exc.status_code
-    return Error(exc.title)
+    return Error(message=exc.title)
 
 
 def mime_error_handler(exc, request):
     request.response.status_code = exc.status_code
-    return Error(str(exc))
+    return Error(message=str(exc))
 
 
 def other_exceptions(exc, request):
     logging.error("Unhandled framework error", exc_info=sys.exc_info())
     request.response.status_code = 500
-    return Error("Unhandled server error")
+    return Error(message="Unhandled server error")
 
 
 from pyramid.config import Configurator

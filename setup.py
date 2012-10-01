@@ -23,5 +23,9 @@ setup(
     ],
     packages=[
         'mimeprovider',
+        'mimeprovider.validators',
+        'mimeprovider.packages',
+        'mimeprovider.documenttype',
+        'mimeprovider.client',
     ],
 )

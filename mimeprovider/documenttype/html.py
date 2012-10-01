@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from mimeprovider.documenttype import DocumentType
 
 from mimeprovider.packages.mxml import mXml
@@ -52,13 +54,14 @@ class HtmlDocumentType(DocumentType):
     custom_mime = False
     mime = "text/html"
 
-    def parse(self, context, cls, string):
+    def parse(self, validator, cls, string):
         raise RuntimeError("parse not implemented")
 
-    def render(self, context, obj):
-        data = obj.to_data(context)
+    def render(self, validator, obj):
+        data = obj.to_data()
 
-        context.validate(obj.__class__, data)
+        if validator:
+            validator.validate(obj.__class__, data)
 
         html = mXml("html")
         head = html.add("head")

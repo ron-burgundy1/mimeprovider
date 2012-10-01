@@ -5,7 +5,7 @@ import sys
 log = logging.getLogger(__name__)
 
 DEFAULT_VALIDATORS = [
-    "mimeprovider.validators.jsonschema_validator"
+    "mimeprovider.validators.jsonschema"
 ]
 
 
@@ -21,4 +21,4 @@ def get_default_validator():
 
             continue
 
-    return None
+    raise ImportError("No validator found")

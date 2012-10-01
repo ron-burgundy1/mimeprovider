@@ -1,12 +1,13 @@
 import logging
 
 from mimeprovider.documenttype import get_default_document_types
+from mimeprovider.client import get_default_client
 
 from mimeprovider.exceptions import MimeException
 from mimeprovider.exceptions import MimeBadRequest
-from mimeprovider.exceptions import MimeInternalServerError
 
 from mimeprovider.mimerenderer import MimeRenderer
+from mimeprovider.validators import get_default_validator
 
 __all__ = ["MimeProvider"]
 __version__ = "0.1.2"
@@ -20,13 +21,15 @@ def build_json_ref(request):
 
         ref["$ref"] = request.route_path(route, **kw)
 
-        if document and not hasattr(document, "object_type"):
-            raise MimeInternalServerError(
-                "Cannot reference object without 'object_type'")
+        rel_default = None
 
-            ref["rel"] = kw.pop("rel_", document.object_type)
+        if document:
+            rel_default = getattr(document, "object_type",
+                                  document.__class__.__name__)
         else:
-            ref["rel"] = kw.pop("rel_", route)
+            rel_default = route
+
+        ref["rel"] = kw.pop("rel_", rel_default)
 
         return ref
 
@@ -38,7 +41,11 @@ class MimeProvider(object):
         self.renderer_name = kw.get("renderer_name", "mime")
         self.attribute_name = kw.get("attribute_name", "mime_body")
         self.error_handler = kw.get("error_handler", None)
+
         self.validator = kw.get("validator")
+
+        if self.validator is None:
+            self.validator = get_default_validator()
 
         types = kw.get("types")
 
@@ -47,6 +54,11 @@ class MimeProvider(object):
 
         if not types:
             raise ValueError("No document types specified")
+
+        self.client = kw.get("client")
+
+        if self.client is None:
+            self.client = get_default_client()
 
         self.type_instances = [t() for t in types]
         self.mimetypes = dict(self._generate_base_mimetypes())
@@ -72,7 +84,7 @@ class MimeProvider(object):
             if t.custom_mime:
                 continue
 
-            yield t.mime, (t, None)
+            yield t.mime, (t, None, None)
 
     def _generate_document_mimetypes(self, documents):
         for t in self.type_instances:
@@ -81,7 +93,13 @@ class MimeProvider(object):
 
             for o in documents:
                 mimetype = t.mime.format(o=o)
-                yield mimetype, (t, o)
+
+                validator = None
+
+                if hasattr(o, "schema"):
+                    validator = self.validator(o.schema)
+
+                yield mimetype, (t, o, validator)
 
     def register(self, *documents):
         documents = list(documents)
@@ -103,13 +121,8 @@ class MimeProvider(object):
                 "Conflicting handler for {0}, {1} and {2}".format(
                     m, cls, new_cls))
 
-    def client(self, *args, **kw):
-        try:
-            from mimeprovider.requests_client import Client
-        except ImportError:
-            raise
-
-        return Client(self.mimetypes, *args, **kw)
+    def get_client(self, *args, **kw):
+        return self.client(self.mimetypes, *args, **kw)
 
     def get_mime_body(self, request):
         if not request.body or not request.content_type:

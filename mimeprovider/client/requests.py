@@ -1,6 +1,13 @@
 """
 A mimeprovider client based on requests.
 """
+from __future__ import absolute_import
+
+import sys
+import logging
+
+log = logging.getLogger(__name__)
+
 import urlparse
 
 import requests
@@ -63,18 +70,23 @@ class RequestsClient(Client):
             raise ClientException(
                 "Cannot handle response type: {0}".format(mimetype))
 
-        document_type, document_class = self.mimetypes.get(mimetype)
+        document_type, document_class, validator = self.mimetypes.get(mimetype)
 
         if expect and document_class not in expect:
             raise ClientException(
                 "Unexpected response type: {0}".format(mimetype))
 
         try:
-            obj = document_type.parse(self, document_class, response.content)
+            obj = document_type.parse(validator,
+                                      document_class,
+                                      response.content)
         except MimeValidationError as e:
             raise ClientException(
                 "Response format invalid: {0}".format(str(e)))
         except:
+            log.error(
+                "Failed to parse content of type: {0}".format(mimetype),
+                exc_info=sys.exc_info())
             raise ClientException(
                 "Failed to parse content of type: {0}".format(mimetype))
 

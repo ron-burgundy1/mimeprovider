@@ -10,3 +10,8 @@ class Client(object):
 
     def put(self, uri, **kw):
         return self.request('PUT', uri, **kw)
+
+
+def get_default_client():
+    from mimeprovider.client.requests import RequestsClient
+    return RequestsClient

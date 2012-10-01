@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from mimeprovider.documenttype import DocumentType
 
 import pprint
@@ -11,12 +13,13 @@ class TextDocumentType(DocumentType):
     custom_mime = False
     mime = "text/plain"
 
-    def parse(self, context, cls, string):
+    def parse(self, validator, cls, string):
         raise RuntimeError("parse not implemented")
 
-    def render(self, context, obj):
-        data = obj.to_data(context)
-        context.validate(obj.__class__, data)
+    def render(self, validator, obj):
+        data = obj.to_data()
+        if validator:
+            validator.validate(obj.__class__, data)
         pp = pprint.PrettyPrinter(indent=4, depth=1)
         return pp.pformat(data)
 
