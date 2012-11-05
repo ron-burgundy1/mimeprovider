@@ -61,7 +61,7 @@ class HtmlDocumentType(DocumentType):
         data = obj.to_data()
 
         if validator:
-            validator.validate(obj.__class__, data)
+            validator.validate(data)
 
         html = mXml("html")
         head = html.add("head")

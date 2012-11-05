@@ -16,7 +16,7 @@ class JsonDocumentType(DocumentType):
     def parse(self, validator, cls, string):
         data = json.loads(string)
         if validator:
-            validator.validate(cls, data)
+            validator.validate(data)
         return cls.from_data(data)
 
     def render(self, validator, obj):

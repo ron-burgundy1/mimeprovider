@@ -10,7 +10,7 @@ from mimeprovider.mimerenderer import MimeRenderer
 from mimeprovider.validators import get_default_validator
 
 __all__ = ["MimeProvider"]
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 log = logging.getLogger(__name__)
 

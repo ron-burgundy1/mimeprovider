@@ -19,7 +19,7 @@ class TextDocumentType(DocumentType):
     def render(self, validator, obj):
         data = obj.to_data()
         if validator:
-            validator.validate(obj.__class__, data)
+            validator.validate(data)
         pp = pprint.PrettyPrinter(indent=4, depth=1)
         return pp.pformat(data)
 

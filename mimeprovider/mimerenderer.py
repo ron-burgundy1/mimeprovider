@@ -24,9 +24,9 @@ class MimeRenderer(object):
         document_type, _, validator = self.mimetypes[mime]
 
         if not hasattr(obj, "to_data"):
-            log.error("Object missing 'to_data' attribute: " + repr(obj))
+            log.error("Object missing 'to_data' attribute {0!r}".format(obj))
             raise MimeInternalServerError(
-                "Cannot render requested resource")
+                "Cannot render requested resource: {0!r}".format(obj))
 
         request.response.content_type = document_type.get_mimetype(obj)
         return document_type.render(validator, obj)
@@ -35,7 +35,7 @@ class MimeRenderer(object):
         error = self.error_handler(exc, request)
         request.response.content_type = \
             self.error_document_type.get_mimetype(error)
-        return self.error_document_type.render(self, error, request)
+        return self.error_document_type.render(None, error)
 
     def __call__(self, obj, system):
         request = system.get("request")
