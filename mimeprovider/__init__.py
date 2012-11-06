@@ -10,7 +10,7 @@ from mimeprovider.mimerenderer import MimeRenderer
 from mimeprovider.validators import get_default_validator
 
 __all__ = ["MimeProvider"]
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +61,7 @@ class MimeProvider(object):
             self.client = get_default_client()
 
         self.type_instances = [t() for t in types]
+        self.mimeobjects = dict()
         self.mimetypes = dict(self._generate_base_mimetypes())
 
         self.error_document_type = kw.get(
@@ -99,7 +100,10 @@ class MimeProvider(object):
                 if hasattr(o, "schema"):
                     validator = self.validator(o.schema)
 
-                yield mimetype, (t, o, validator)
+                m_value = (mimetype, (t, o, validator))
+                o_value = (o, (t, mimetype, validator))
+
+                yield m_value, o_value
 
     def register(self, *documents):
         documents = list(documents)
@@ -109,20 +113,22 @@ class MimeProvider(object):
 
         generator = self._generate_document_mimetypes(documents)
 
-        for (m, value) in generator:
+        for (m, m_value), (o, o_value) in generator:
+            self.mimeobjects.setdefault(o, []).append(o_value)
+
             if m not in self.mimetypes:
-                self.mimetypes[m] = value
+                self.mimetypes[m] = m_value
                 continue
 
             _, cls = self.mimetypes[m]
-            _, new_cls = value
+            _, new_cls = m_value
 
             raise ValueError(
                 "Conflicting handler for {0}, {1} and {2}".format(
                     m, cls, new_cls))
 
     def get_client(self, *args, **kw):
-        return self.client(self.mimetypes, *args, **kw)
+        return self.client(self.mimetypes, self.mimeobjects, *args, **kw)
 
     def get_mime_body(self, request):
         if not request.body or not request.content_type:
@@ -134,7 +140,7 @@ class MimeProvider(object):
             raise MimeBadRequest(
                 "Unsupported Content-Type: " + request.content_type)
 
-        document_type, cls = result
+        document_type, cls, validator = result
 
         # the specific document does not support deserialization.
         if not hasattr(cls, "from_data"):
@@ -142,7 +148,7 @@ class MimeProvider(object):
                 "Unsupported Content-Type: " +
                 request.content_type)
 
-        return document_type.parse(self, cls, request.body)
+        return document_type.parse(validator, cls, request.body)
 
     @property
     def renderer(self):

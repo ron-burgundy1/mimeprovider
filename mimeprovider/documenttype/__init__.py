@@ -18,8 +18,8 @@ class DocumentType(object):
 
 
 DEFAULT_DOCUMENT_TYPES = [
-    "mimeprovider.documenttype.html",
     "mimeprovider.documenttype.json",
+    "mimeprovider.documenttype.html",
     "mimeprovider.documenttype.text",
 ]
 

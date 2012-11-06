@@ -3,7 +3,7 @@ from distutils.core import setup
 import glob
 import os
 
-VERSION = '0.1.3'
+VERSION = '0.1.4'
 
 setup(
     name='mimeprovider',

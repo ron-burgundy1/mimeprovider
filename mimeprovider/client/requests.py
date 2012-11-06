@@ -27,8 +27,12 @@ class ClientException(Exception):
 
 
 class RequestsClient(Client):
-    def __init__(self, mimetypes, url, **kw):
+    def __init__(self, mimetypes, mimeobjects, url, **kw):
+        # mimetype do document type mappings.
         self.mimetypes = mimetypes
+
+        # object to document type mappings.
+        self.mimeobjects = mimeobjects
 
         url = urlparse.urlparse(url)
 
@@ -50,19 +54,45 @@ class RequestsClient(Client):
             **kw)
 
     def request(self, method, uri, **kw):
+        """
+        The money maker.
+        """
         expect = kw.pop("expect", [])
+        mime_body = kw.pop("mime_body", None)
+
+        headers = kw.pop("headers", {})
+        data = kw.pop("data", None)
+
+        if mime_body:
+            mimevalues = self.mimeobjects.get(mime_body.__class__)
+
+            if not mimevalues:
+                raise ClientException(
+                    ("Cannot handle object of type "
+                     "{0!r}").format(mime_body.__class__))
+
+            mapping = mimevalues[0]
+
+            document_type, mimetype, validator = mapping
+
+            data = document_type.render(validator, mime_body)
+            headers["Content-Type"] = mimetype
 
         if uri[0] != '/':
             uri = '/' + uri
 
         url = "{self.scheme}://{self.host}{uri}".format(self=self, uri=uri)
 
-        response = self.session.request(method, url, **kw)
+        response = self.session.request(
+            method, url,
+            headers=headers,
+            data=data,
+            **kw)
 
         content_type = response.headers.get("Content-Type")
 
-        if content_type is None:
-            raise ClientException("Cannot handle empty Content-Type")
+        if content_type is None or not response.content:
+            return response, None
 
         mimetype, opts = werkzeug.http.parse_options_header(content_type)
 

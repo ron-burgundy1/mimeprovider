@@ -35,6 +35,9 @@ class mXml(object):
         """
         Add a string child.
         """
+        if isinstance(string, unicode):
+            string = string.encode("utf-8")
+
         self.children.append((STRING, str(string)))
 
     def __setitem__(self, key, value):

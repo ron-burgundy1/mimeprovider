@@ -43,7 +43,7 @@ def _build_data(first_element, first_data):
 
             continue
 
-        element.adds("{0!s}".format(data))
+        element.adds(u'{0!s}'.format(data))
 
 
 class HtmlDocumentType(DocumentType):
