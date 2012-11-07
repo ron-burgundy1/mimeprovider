@@ -12,13 +12,14 @@ def _build_data(first_element, first_data):
         element, data = queue.pop()
 
         if isinstance(data, list):
-            table = element.add("table", cellspacing="0", cellpadding="2")
+            table = element.add("table", cellspacing="2", cellpadding="2")
 
             for i, item in enumerate(data):
                 tr = table.add("tr")
-                sequence = tr.add("th")
+                sequence = tr.add("th", valign="top", align='left',
+                                  style='background-color: #ff8888;')
                 sequence.adds(i)
-                value = tr.add("td", style="padding: 0 2px", align="left")
+                value = tr.add("td", align="left")
                 queue.insert(0, (value, item))
 
             continue
@@ -32,13 +33,13 @@ def _build_data(first_element, first_data):
                 link.adds(rel)
                 continue
 
-            table = element.add("table", cellspacing="0", cellpadding="2")
+            table = element.add("table", cellspacing="2", cellpadding="2")
 
             for k, v in sorted(data.items()):
                 tr = table.add("tr")
-                title = tr.add("th", valign="top", align="right")
+                title = tr.add("th", valign="top", align="left")
                 title.adds("{0}:".format(k))
-                value = tr.add("td", style="padding: 0 2px;", align="left")
+                value = tr.add("td", align="left")
                 queue.insert(0, (value, v))
 
             continue

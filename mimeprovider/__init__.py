@@ -10,7 +10,7 @@ from mimeprovider.mimerenderer import MimeRenderer
 from mimeprovider.validators import get_default_validator
 
 __all__ = ["MimeProvider"]
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 log = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ class MimeProvider(object):
         self.renderer_name = kw.get("renderer_name", "mime")
         self.attribute_name = kw.get("attribute_name", "mime_body")
         self.error_handler = kw.get("error_handler", None)
+        self.set_default_renderer = kw.get("set_default_renderer", False)
 
         self.validator = kw.get("validator")
 
@@ -120,8 +121,8 @@ class MimeProvider(object):
                 self.mimetypes[m] = m_value
                 continue
 
-            _, cls = self.mimetypes[m]
-            _, new_cls = m_value
+            _, cls, validator = self.mimetypes[m]
+            _, new_cls, validator = m_value
 
             raise ValueError(
                 "Conflicting handler for {0}, {1} and {2}".format(
@@ -163,6 +164,8 @@ class MimeProvider(object):
 
     def add_config(self, config):
         config.add_renderer(self.renderer_name, self.renderer)
+        if self.set_default_renderer:
+            config.add_renderer(None, self.renderer)
         config.set_request_property(self.get_mime_body, self.attribute_name,
                                     reify=True)
         config.set_request_property(build_json_ref, "json_ref", reify=True)
