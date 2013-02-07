@@ -6,7 +6,7 @@ import os
 VERSION = '0.1.5'
 
 setup(
-    name='mimeprovider',
+    name='mimey3000',
     version=VERSION,
     description="RESTful mime handling plugin for Pyramid",
     long_description="""
@@ -16,7 +16,7 @@ setup(
     """,
     author='John-John Tedro',
     author_email='johnjohn.tedro@gmail.com',
-    url='http://github.com/udoprog/mimeprovider',
+    url='http://github.com/ron-burgundy1/mimeprovider',
     license='GPLv3',
     data_files=[
         ("examples", glob.glob(os.path.join("examples", "*.py")))
